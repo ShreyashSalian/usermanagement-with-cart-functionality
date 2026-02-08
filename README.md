@@ -1,10 +1,39 @@
 # User Card Management System
 
-- A Node.js and MongoDB based REST API for managing users and their orders
-  The system allows:
-- Allow user to login
+📌 Project Overview
 
----
+This is a Node.js and MongoDB–based REST API designed for managing users, carts, and orders in an e-commerce–style system.
+The API follows REST principles and supports secure authentication, authorization, and order processing.
+
+🚀 Features
+
+1. 👤 User Management
+
+- User registration
+
+- User login (JWT-based authentication)
+
+- Reset password
+
+- Update password
+
+2. 🛍️ Cart Management
+
+- Add items to cart
+
+- Update cart items
+
+- Remove items from cart
+
+- View cart details
+
+3. 📦 Order Management
+
+- Place orders from the cart
+
+- Apply coupons and discounts
+
+- Order status tracking
 
 ## Deployment
 
