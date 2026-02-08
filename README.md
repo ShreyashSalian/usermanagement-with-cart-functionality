@@ -2,6 +2,7 @@
 
 - A Node.js and MongoDB based REST API for managing users and their orders
   The system allows:
+- Allow user to login
 
 ---
 
