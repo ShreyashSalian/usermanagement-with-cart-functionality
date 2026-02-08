@@ -10,7 +10,7 @@
 - To clone this project
 
 ```bash
-  git clone https://github.com/ShreyashSalian/user-card-mangement.git
+  git clone https://github.com/ShreyashSalian/usermanagement-with-cart-functionality.git
 ```
 
 - Go to the folder user-authenication
