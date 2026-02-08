@@ -1,0 +1,121 @@
+import { Request, Response } from "express";
+import { OrderModel } from "../models/order.model";
+import { sendSuccess, sendError } from "../utils/response";
+import { CONSTANT_LIST } from "../constants";
+
+export const getOrderReports = async (req: Request, res: Response) => {
+  try {
+    const { type, year, month } = req.query;
+
+    if (!type || !year) {
+      return sendError(
+        res,
+        CONSTANT_LIST.STATUS_ERROR,
+        CONSTANT_LIST.BAD_REQUEST,
+        "type and year are required",
+      );
+    }
+
+    let startDate: Date;
+    let endDate: Date;
+
+    if (type === "monthly") {
+      if (!month) {
+        return sendError(
+          res,
+          CONSTANT_LIST.STATUS_ERROR,
+          CONSTANT_LIST.BAD_REQUEST,
+          "month is required for monthly report",
+        );
+      }
+
+      startDate = new Date(
+        Number(year),
+        Number(month) - 1,
+        1,
+        0,
+        0,
+        0,
+      );
+
+      endDate = new Date(
+        Number(year),
+        Number(month),
+        0,
+        23,
+        59,
+        59,
+      );
+    } else if (type === "yearly") {
+      startDate = new Date(Number(year), 0, 1, 0, 0, 0);
+      endDate = new Date(Number(year), 11, 31, 23, 59, 59);
+    } else {
+      return sendError(
+        res,
+        CONSTANT_LIST.STATUS_ERROR,
+        CONSTANT_LIST.BAD_REQUEST,
+        "Invalid report type",
+      );
+    }
+
+    const report = await OrderModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          totalRevenue: {
+            $sum: {
+              $cond: [
+                { $eq: ["$paymentStatus", "PAID"] },
+                "$payableAmount",
+                0,
+              ],
+            },
+          },
+          paidOrders: {
+            $sum: {
+              $cond: [{ $eq: ["$paymentStatus", "PAID"] }, 1, 0],
+            },
+          },
+          cancelledOrders: {
+            $sum: {
+              $cond: [{ $eq: ["$orderStatus", "CANCELLED"] }, 1, 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    const data = report[0] || {
+      totalOrders: 0,
+      totalRevenue: 0,
+      paidOrders: 0,
+      cancelledOrders: 0,
+    };
+
+    return sendSuccess(
+      res,
+      CONSTANT_LIST.STATUS_SUCCESS,
+      CONSTANT_LIST.STATUS_CODE_OK,
+      "Order report fetched successfully",
+      {
+        type,
+        period: { year, month: month || null },
+        ...data,
+      },
+    );
+  } catch (err: any) {
+    console.error("Order report error:", err);
+    return sendError(
+      res,
+      CONSTANT_LIST.STATUS_ERROR,
+      CONSTANT_LIST.INTERNAL_SERVER_ERROR,
+      CONSTANT_LIST.INTERNAL_SERVER_ERROR_MESSAGE,
+    );
+  }
+};
